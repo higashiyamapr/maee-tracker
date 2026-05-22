@@ -311,7 +311,7 @@ function resize(file){
 async function gemini(b64,key){
   const list=PRODUCTS.map(p=>"品番"+(p.code||"不明")+": "+p.type+" "+p.colorLabel+(p.code?"":"（品番なし）")).join("\n");
   const prompt="MAEÉコンプレッションソックスのパッケージ画像です。ラベルの品番・商品名・色を読み取り、下記リストと照合してください。\n\n商品リスト:\n"+list+"\n\n必ずJSON配列のみを返してください。説明文不要。\n[{\"code\":\"品番(不明なら空)\",\"type\":\"種類\",\"color\":\"カラーコード\",\"colorLabel\":\"色名\",\"qty\":個数}]\n同じ商品が複数写っていれば qty を増やす。認識できなければ [] のみ。";
-  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+key,{
+  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key,{
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}]})
   });
