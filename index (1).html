@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MAÉE記録">
+<title>MAÉE お渡し記録</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Hiragino Mincho ProN','Yu Mincho',Georgia,serif;background:#f7f4ef;color:#1a1a1a;min-height:100vh}
+header{background:#1a1a1a;color:#f7f4ef;padding:16px 20px;position:sticky;top:0;z-index:30}
+.hbrand{font-size:10px;letter-spacing:4px;color:#777;margin-bottom:2px}
+.htitle{font-size:17px;letter-spacing:1px;margin-bottom:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tbtn{padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #555;background:transparent;color:#aaa;font-family:inherit}
+.tbtn.active{border-color:#f7f4ef;background:#f7f4ef;color:#1a1a1a}
+.page{max-width:480px;margin:0 auto;padding:24px 16px;display:none}
+.page.active{display:block}
+.hpage{max-width:560px;margin:0 auto;padding:20px 16px;display:none}
+.hpage.active{display:block}
+.mcard{display:flex;align-items:center;gap:16px;background:#fff;border-radius:14px;padding:18px 20px;border:1px solid #e8e4dc;cursor:pointer;margin-bottom:10px}
+.micon{font-size:26px}
+.mtitle{font-size:15px;font-weight:600;margin-bottom:2px}
+.msub{font-size:12px;color:#999}
+.marr{color:#ccc;font-size:18px;margin-left:auto}
+.slabel{font-size:12px;color:#999;margin-bottom:8px;letter-spacing:.5px;margin-top:16px}
+.slabel:first-child{margin-top:0}
+input[type=text],input[type=password],input[type=date],textarea{width:100%;padding:11px 14px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px}
+textarea{resize:vertical}
+.btnp{width:100%;padding:14px;border-radius:12px;border:none;background:#1a1a1a;font-size:15px;cursor:pointer;color:#f7f4ef;font-family:inherit;font-weight:500;margin-top:8px}
+.btng{padding:8px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;color:#555;font-family:inherit}
+.kbox{margin-bottom:16px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid #e0e0e0}
+.klbl{font-size:11px;color:#999;margin-bottom:6px;letter-spacing:1px}
+.krow{display:flex;gap:8px}
+.krow input{flex:1;margin-bottom:0;padding:8px 12px;font-size:13px}
+.ksave{padding:8px 14px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;font-size:13px;cursor:pointer;flex-shrink:0}
+.kst{font-size:11px;margin-top:5px}
+.kst.ok{color:#16a34a}
+.kst.warn{color:#c9a84c}
+.scanbtn{display:block;width:100%;padding:18px;border-radius:12px;border:2px solid #1a1a1a;background:#1a1a1a;color:#f7f4ef;font-size:16px;cursor:pointer;text-align:center;font-family:inherit;margin-bottom:8px}
+.scanbtn:disabled{border-color:#ccc;background:#f5f5f5;color:#aaa;cursor:not-allowed}
+.rbox{background:#fff;border-radius:12px;border:1px solid #e8e4dc;overflow:hidden;margin-bottom:12px}
+.ritem{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #f0ede8}
+.ritem:last-child{border-bottom:none}
+.cdot{width:12px;height:12px;border-radius:50%;border:1px solid #ddd;flex-shrink:0}
+.iname{font-size:14px;font-weight:600}
+.isub{font-size:11px;color:#bbb}
+.iqty{font-size:13px;font-weight:700;color:#c9a84c}
+.errbox{padding:12px;background:#fff0f0;border-radius:10px;border:1px solid #fca5a5;font-size:13px;color:#c0392b;margin-bottom:12px}
+.okbox{padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;font-size:13px;color:#166534;margin-bottom:12px}
+.prow{display:flex;gap:8px;margin-bottom:8px}
+.prow input{flex:1;margin-bottom:0}
+.premv{padding:0 14px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;color:#999}
+.padd{width:100%;margin-bottom:16px}
+.sbox{width:100%;padding:11px 14px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:14px;outline:none;font-family:inherit;margin-bottom:12px}
+.clbl{font-size:12px;color:#999;margin-bottom:12px}
+.rcrd{background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e8e4dc;margin-bottom:10px}
+.rhdr{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.rtype{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;flex-shrink:0}
+.rmain{flex:1;min-width:0}
+.rtitle{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.rrecip{font-size:12px;color:#aaa}
+.rdate{font-size:12px;color:#888;flex-shrink:0}
+.rarr{color:#bbb;font-size:11px}
+.rdet{border-top:1px solid #f0ede8;padding:14px 16px;background:#faf8f5;display:none}
+.rdet.open{display:block}
+.dlbl{font-size:11px;color:#aaa;margin-bottom:4px;margin-top:10px}
+.dlbl:first-child{margin-top:0}
+.dval{font-size:13px}
+.ditem{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:13px}
+.bdel{padding:6px 14px;border-radius:8px;border:1px solid #fca5a5;background:#fff;font-size:12px;cursor:pointer;color:#e74c3c;font-family:inherit;margin-top:12px}
+.empty{text-align:center;padding:80px 0;color:#aaa}
+.eico{font-size:40px;margin-bottom:12px}
+.donew{text-align:center;padding:48px 0}
+.doneico{font-size:52px;margin-bottom:16px}
+.donetitle{font-size:20px;font-weight:500;margin-bottom:8px}
+.doneitems{font-size:14px;color:#888;margin-bottom:28px}
+.modetitle{font-size:18px;font-weight:600;margin-bottom:24px}
+.backbtn{margin-bottom:20px;font-size:12px}
+.sdesc{font-size:13px;color:#666;line-height:1.8;margin-bottom:16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbrand">MAÉE</div>
+  <div class="htitle">お渡し記録</div>
+  <div class="tabs">
+    <button class="tbtn active" onclick="showTab('new',this)">＋ 新規</button>
+    <button class="tbtn" onclick="showTab('history',this)" id="tab-history">履歴</button>
+    <button class="tbtn" onclick="showTab('products',this)">商品一覧</button>
+  </div>
+</header>
+
+<div class="page active" id="page-new">
+  <!-- MODE -->
+  <div id="v-mode">
+    <p style="font-size:14px;color:#666;line-height:1.9;margin-bottom:20px">どのパターンで渡しましたか？</p>
+    <div class="mcard" onclick="selMode('one')"><span class="micon">🎁</span><div><div class="mtitle">個別</div><div class="msub">1人に渡す</div></div><span class="marr">›</span></div>
+    <div class="mcard" onclick="selMode('group')"><span class="micon">🔀</span><div><div class="mtitle">複数</div><div class="msub">複数人に渡す（誰に何かは不明）</div></div><span class="marr">›</span></div>
+    <div class="mcard" onclick="selMode('bulk')"><span class="micon">📦</span><div><div class="mtitle">集団</div><div class="msub">編集部・施設などまとめて渡す</div></div><span class="marr">›</span></div>
+  </div>
+  <!-- SCAN -->
+  <div id="v-scan" style="display:none">
+    <button class="btng backbtn" onclick="sv('mode')">← 戻る</button>
+    <div class="modetitle" id="scan-title"></div>
+    <div class="kbox">
+      <div class="klbl">GEMINI API KEY</div>
+      <div class="krow">
+        <input type="password" id="key-input" placeholder="AIza..." oninput="updKey()">
+        <button class="ksave" onclick="saveKey()">保存</button>
+      </div>
+      <div class="kst" id="kst"></div>
+    </div>
+    <div class="sdesc">渡した商品のパッケージ写真を選んでください。複数枚・同じ商品が複数個でもOKです。</div>
+    <button class="scanbtn" id="scanbtn" onclick="trigFile()">📷 写真を選ぶ（複数可）</button>
+    <input type="file" id="finput" accept="image/*" multiple style="display:none" onchange="handleFiles(this)">
+    <div id="scan-err" class="errbox" style="display:none"></div>
+  </div>
+  <!-- CONFIRM -->
+  <div id="v-confirm" style="display:none">
+    <button class="btng backbtn" onclick="sv('scan')">← 撮り直す</button>
+    <div class="modetitle" id="conf-title"></div>
+    <div class="slabel">📋 認識した商品</div>
+    <div class="rbox" id="rlist"></div>
+    <div class="slabel" id="rlbl">👤 お名前</div>
+    <div id="r-one"><input type="text" id="name-one" placeholder="例：田中 花子"></div>
+    <div id="r-group" style="display:none">
+      <div id="plist"></div>
+      <button class="btng padd" onclick="addP()">＋ 人を追加</button>
+    </div>
+    <div id="r-bulk" style="display:none"><input type="text" id="name-bulk" placeholder="例：○○編集部、△△クリニック"></div>
+    <div class="slabel">📅 日付</div>
+    <input type="date" id="dateinput">
+    <div class="slabel">📝 メモ（任意）</div>
+    <textarea id="notesinput" rows="2" placeholder="備考など..."></textarea>
+    <div id="conf-err" class="errbox" style="display:none"></div>
+    <button class="btnp" onclick="saveRec()">記録を保存 →</button>
+  </div>
+  <!-- DONE -->
+  <div id="v-done" style="display:none">
+    <div class="donew">
+      <div class="doneico">✅</div>
+      <div class="donetitle">記録しました</div>
+      <div class="doneitems" id="done-items"></div>
+      <button class="btnp" onclick="resetNew()">続けて登録</button>
+    </div>
+  </div>
+</div>
+
+<div class="hpage" id="page-history"></div>
+
+<div class="page" id="page-products">
+  <div style="font-size:13px;color:#888;margin-bottom:16px" id="pcnt"></div>
+  <div class="rbox" id="plist-all"></div>
+</div>
+
+<script>
+// 全商品マスター（サイトから確認できた全ライン）
+const PRODUCTS = [
+  // コットンリブ
+  {code:"1056",type:"コットンリブ",color:"PK",  colorLabel:"ピンク",         hex:"#e8929a"},
+  {code:"1033",type:"コットンリブ",color:"RED", colorLabel:"レッド",         hex:"#c0392b"},
+  {code:"",    type:"コットンリブ",color:"PW-PK",colorLabel:"パウダーピンク",hex:"#f5d5d5"},
+  {code:"",    type:"コットンリブ",color:"PW-BL",colorLabel:"パウダーブルー",hex:"#b8d4e8"},
+  {code:"",    type:"コットンリブ",color:"OW",  colorLabel:"オフホワイト",   hex:"#f0ede5"},
+  {code:"",    type:"コットンリブ",color:"DGY", colorLabel:"ダークグレー",   hex:"#555555"},
+  {code:"",    type:"コットンリブ",color:"PBK", colorLabel:"ピュアブラック", hex:"#1a1a1a"},
+  {code:"",    type:"コットンリブ",color:"MGY", colorLabel:"ミディアムグレー",hex:"#888888"},
+  {code:"",    type:"コットンリブ",color:"LGY", colorLabel:"ライトグレー",   hex:"#cccccc"},
+  {code:"",    type:"コットンリブ",color:"DBD", colorLabel:"ディープボルドー",hex:"#5c1a2a"},
+  {code:"",    type:"コットンリブ",color:"NBR", colorLabel:"ナチュラルブラウン",hex:"#8b6355"},
+  {code:"",    type:"コットンリブ",color:"PNK-L",colorLabel:"ピンク（コラボ）",hex:"#e8305a"},
+  {code:"",    type:"コットンリブ",color:"LAV", colorLabel:"ライラック",     hex:"#b8a0d0"},
+  // コットン
+  {code:"1051",type:"コットン",    color:"NV",  colorLabel:"ネイビー",       hex:"#1a2a4a"},
+  {code:"",    type:"コットン",    color:"PBK", colorLabel:"ピュアブラック", hex:"#1a1a1a"},
+  {code:"",    type:"コットン",    color:"CHGY",colorLabel:"チャコールグレー",hex:"#4a4a4a"},
+  {code:"",    type:"コットン",    color:"MMY", colorLabel:"ミモザイエロー", hex:"#e8d44d"},
+  // コットンシアー
+  {code:"",    type:"コットンシアー",color:"PMK",colorLabel:"プリュムモカ",  hex:"#8b7355"},
+  {code:"",    type:"コットンシアー",color:"FBK",colorLabel:"フェザーブラック",hex:"#2a2a2a"},
+  {code:"",    type:"コットンシアー",color:"DGY",colorLabel:"ダブグレー",    hex:"#888888"},
+  {code:"",    type:"コットンシアー",color:"SW", colorLabel:"スワンホワイト", hex:"#f0ede5"},
+  {code:"",    type:"コットンシアー",color:"CLB",colorLabel:"セレストブルー", hex:"#a0c4d8"},
+  // シアー
+  {code:"1046",type:"シアー",      color:"BG",  colorLabel:"ベージュ",       hex:"#c8b09a"},
+  {code:"1050",type:"シアー",      color:"BK",  colorLabel:"ブラック",       hex:"#2a2a2a"},
+  {code:"1044",type:"シアー",      color:"CH",  colorLabel:"チョコレート",   hex:"#4a2c1a"},
+  {code:"1045",type:"シアー",      color:"WH",  colorLabel:"ホワイト",       hex:"#d8d8d0"},
+  {code:"",    type:"シアー",      color:"NBG", colorLabel:"ナチュラルベージュ",hex:"#c8a882"},
+  {code:"",    type:"シアー",      color:"CHCO",colorLabel:"チャコール",     hex:"#555555"},
+  {code:"",    type:"シアー",      color:"BGD", colorLabel:"バーガンディ",   hex:"#6b1a2a"},
+  // グリッターリブ
+  {code:"1067",type:"グリッターリブ",color:"GD", colorLabel:"ゴールド",      hex:"#c9a84c"},
+  {code:"",    type:"グリッターリブ",color:"SV", colorLabel:"シルバー",      hex:"#aaaaaa"},
+  // ラインタイプ
+  {code:"",    type:"ライン",      color:"CHRD",colorLabel:"チャコール×レッド",hex:"#555555"},
+  {code:"",    type:"ライン",      color:"NVSV",colorLabel:"ネイビー×シルバーラメ",hex:"#1a2a4a"},
+  // プレミアムウール
+  {code:"",    type:"プレミアムウール",color:"OML",colorLabel:"オートミール", hex:"#d4c8b0"},
+  {code:"",    type:"プレミアムウール",color:"FGR",colorLabel:"フォレストグリーン",hex:"#2a5a3a"},
+  {code:"",    type:"プレミアムウール",color:"FCH",colorLabel:"フォギーチャコール",hex:"#4a4a4a"},
+  // ソックス（旧品番）
+  {code:"1064",type:"ソックス",    color:"BK",  colorLabel:"ブラック",       hex:"#2a2a2a"},
+  {code:"1035",type:"ソックス",    color:"GY",  colorLabel:"グレー",         hex:"#888888"},
+];
+
+let curMode=null, scanned=[], records=JSON.parse(localStorage.getItem("maee-records")||"[]");
+let apiKey=localStorage.getItem("maee-gemini-key")||"", pcount=1, hfilter="";
+
+window.onload=()=>{
+  if(apiKey){document.getElementById("key-input").value=apiKey;updKey();}
+  document.getElementById("dateinput").value=new Date().toISOString().slice(0,10);
+  renderProds();updHistTab();
+};
+
+function updKey(){
+  const v=document.getElementById("key-input").value.trim();
+  const el=document.getElementById("kst");
+  if(v){el.className="kst ok";el.textContent="✅ キー入力済み";}
+  else{el.className="kst warn";el.textContent="⚠ aistudio.google.com で無料取得できます";}
+}
+function saveKey(){
+  const v=document.getElementById("key-input").value.trim();
+  if(!v)return;
+  apiKey=v;localStorage.setItem("maee-gemini-key",v);updKey();
+  alert("APIキーを保存しました！次回から自動で読み込まれます。");
+}
+
+function showTab(t,btn){
+  document.querySelectorAll(".page,.hpage").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tbtn").forEach(el=>el.classList.remove("active"));
+  if(t==="history"){document.getElementById("page-history").classList.add("active");renderHist();}
+  else document.getElementById("page-"+t).classList.add("active");
+  btn.classList.add("active");
+}
+
+function sv(v){["mode","scan","confirm","done"].forEach(n=>document.getElementById("v-"+n).style.display=n===v?"block":"none");}
+function selMode(m){
+  curMode=m;
+  const t={one:"🎁 個別",group:"🔀 複数",bulk:"📦 集団"};
+  document.getElementById("scan-title").textContent=t[m];
+  document.getElementById("conf-title").textContent=t[m];
+  sv("scan");
+}
+function resetNew(){
+  curMode=null;scanned=[];pcount=1;
+  ["name-one","name-bulk","notesinput"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  document.getElementById("dateinput").value=new Date().toISOString().slice(0,10);
+  document.getElementById("scan-err").style.display="none";
+  document.getElementById("conf-err").style.display="none";
+  document.getElementById("finput").value="";
+  sv("mode");
+}
+
+function trigFile(){document.getElementById("finput").click();}
+
+async function handleFiles(inp){
+  const files=Array.from(inp.files||[]);
+  if(!files.length)return;
+  const key=document.getElementById("key-input").value.trim()||apiKey;
+  if(!key){showErr("scan","Gemini APIキーを入力・保存してください");return;}
+  const btn=document.getElementById("scanbtn");
+  btn.disabled=true;document.getElementById("scan-err").style.display="none";
+  const all=[];
+  for(let i=0;i<files.length;i++){
+    btn.textContent=(i+1)+"/"+files.length+"枚目 認識中...";
+    try{
+      const b64=await resize(files[i]);
+      const items=await gemini(b64,key);
+      all.push(...items);
+    }catch(e){
+      btn.textContent="📷 写真を選ぶ（複数可）";btn.disabled=false;inp.value="";
+      showErr("scan",e.message);return;
+    }
+  }
+  btn.textContent="📷 写真を選ぶ（複数可）";btn.disabled=false;inp.value="";
+  if(!all.length){showErr("scan","商品を認識できませんでした。ラベルがはっきり写った写真を使ってください。");return;}
+  const counted=[];
+  all.forEach(r=>{
+    const ex=counted.find(x=>x.code===r.code&&x.colorLabel===r.colorLabel);
+    if(ex)ex.qty+=(r.qty||1);
+    else counted.push({...r,qty:r.qty||1});
+  });
+  scanned=counted;
+  renderConf();sv("confirm");
+}
+
+function resize(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>rej(new Error("ファイル読み込み失敗"));
+    reader.onload=e=>{
+      const img=new Image();
+      img.onerror=()=>res(e.target.result.split(",")[1]);
+      img.onload=()=>{
+        const MAX=1200;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+        const c=document.createElement("canvas");c.width=w;c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        res(c.toDataURL("image/jpeg",0.82).split(",")[1]);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function gemini(b64,key){
+  const list=PRODUCTS.map(p=>"品番"+(p.code||"不明")+": "+p.type+" "+p.colorLabel+(p.code?"":"（品番なし）")).join("\n");
+  const prompt="MAEÉコンプレッションソックスのパッケージ画像です。ラベルの品番・商品名・色を読み取り、下記リストと照合してください。\n\n商品リスト:\n"+list+"\n\n必ずJSON配列のみを返してください。説明文不要。\n[{\"code\":\"品番(不明なら空)\",\"type\":\"種類\",\"color\":\"カラーコード\",\"colorLabel\":\"色名\",\"qty\":個数}]\n同じ商品が複数写っていれば qty を増やす。認識できなければ [] のみ。";
+  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+key,{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}]})
+  });
+  const raw=await r.text();
+  if(!r.ok)throw new Error("API "+r.status+": "+raw.slice(0,100));
+  const data=JSON.parse(raw);
+  if(data.error)throw new Error(data.error.message||"APIエラー");
+  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||"";
+  const pats=[/```json\s*([\s\S]*?)```/,/```\s*([\s\S]*?)```/,/(\[[\s\S]*\])/];
+  for(const p of pats){const m=text.match(p);if(m){try{const v=JSON.parse(m[1]||m[0]);if(Array.isArray(v))return v;}catch(e){}}}
+  try{const v=JSON.parse(text);if(Array.isArray(v))return v;}catch(e){}
+  throw new Error("解析失敗: "+text.slice(0,100));
+}
+
+function getHex(item){
+  const p=PRODUCTS.find(x=>(x.code&&x.code===item.code)||(x.type===item.type&&x.colorLabel===item.colorLabel));
+  return p?p.hex:"#888888";
+}
+
+function renderConf(){
+  document.getElementById("rlist").innerHTML=scanned.map(item=>`
+    <div class="ritem">
+      <span class="cdot" style="background:${getHex(item)}"></span>
+      <div style="flex:1"><span class="iname">${item.type} ${item.colorLabel}</span> ${item.code?`<span class="isub">#${item.code}</span>`:""}
+      </div>${item.qty>1?`<span class="iqty">×${item.qty}</span>`:""}
+    </div>`).join("");
+  document.getElementById("r-one").style.display=curMode==="one"?"block":"none";
+  document.getElementById("r-group").style.display=curMode==="group"?"block":"none";
+  document.getElementById("r-bulk").style.display=curMode==="bulk"?"block":"none";
+  document.getElementById("rlbl").textContent=curMode==="bulk"?"🏢 渡し先（集団名）":"👤 お名前";
+  if(curMode==="group")renderPpl();
+}
+function renderPpl(){
+  let h="";
+  for(let i=0;i<pcount;i++){
+    const v=document.getElementById("p-"+i)?.value||"";
+    h+=`<div class="prow"><input type="text" id="p-${i}" placeholder="名前 ${i+1}" value="${v}">`;
+    if(pcount>1)h+=`<button class="premv" onclick="rmP(${i})">×</button>`;
+    h+=`</div>`;
+  }
+  document.getElementById("plist").innerHTML=h;
+}
+function addP(){pcount++;renderPpl();}
+function rmP(i){
+  const vs=[];for(let j=0;j<pcount;j++)vs.push(document.getElementById("p-"+j)?.value||"");
+  vs.splice(i,1);pcount--;renderPpl();
+  vs.forEach((v,j)=>{const el=document.getElementById("p-"+j);if(el)el.value=v;});
+}
+
+function saveRec(){
+  document.getElementById("conf-err").style.display="none";
+  let recips=[];
+  if(curMode==="one"){
+    const n=document.getElementById("name-one").value.trim();
+    if(!n){showErr("conf","お名前を入力してください");return;}
+    recips=[n];
+  }else if(curMode==="group"){
+    for(let i=0;i<pcount;i++){const v=document.getElementById("p-"+i)?.value.trim();if(v)recips.push(v);}
+    if(!recips.length){showErr("conf","お名前を入力してください");return;}
+  }else{
+    const n=document.getElementById("name-bulk").value.trim();
+    if(!n){showErr("conf","集団名を入力してください");return;}
+    recips=[n];
+  }
+  const rec={
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    type:curMode,
+    date:document.getElementById("dateinput").value,
+    notes:document.getElementById("notesinput").value,
+    items:scanned,recipients:recips,
+    savedAt:new Date().toISOString()
+  };
+  records.unshift(rec);
+  localStorage.setItem("maee-records",JSON.stringify(records));
+  document.getElementById("done-items").textContent=scanned.map(i=>i.type+" "+i.colorLabel+(i.qty>1?" ×"+i.qty:"")).join("、");
+  updHistTab();sv("done");
+}
+
+function updHistTab(){
+  document.getElementById("tab-history").textContent="履歴"+(records.length?" ("+records.length+")":"");
+}
+function renderHist(){
+  const el=document.getElementById("page-history");
+  const fl=hfilter?records.filter(r=>r.recipients.some(n=>n.includes(hfilter))||r.items.some(i=>(i.type+i.colorLabel).includes(hfilter))||r.date.includes(hfilter)):records;
+  if(!records.length){el.innerHTML=`<div class="empty"><div class="eico">📋</div><div>まだ記録がありません</div></div>`;return;}
+  const tl={one:"個別",group:"複数",bulk:"集団"};
+  const tc={one:"#1a2a4a",group:"#7c3aed",bulk:"#c9a84c"};
+  el.innerHTML=`<button onclick="exportCSV()" style="width:100%;padding:12px;border-radius:10px;border:1px solid #1a1a1a;background:#fff;font-size:14px;cursor:pointer;color:#1a1a1a;font-family:inherit;margin-bottom:12px;">📥 CSVエクスポート（Google Drive用）</button><input class="sbox" placeholder="🔍 名前・商品・日付で検索..." oninput="fHist(this.value)" value="${hfilter}">
+  <div class="clbl">${fl.length}件</div>
+  ${fl.map(r=>`
+  <div class="rcrd">
+    <div class="rhdr" onclick="togRec('${r.id}')">
+      <span class="rtype" style="background:${tc[r.type]}22;color:${tc[r.type]}">${tl[r.type]}</span>
+      <div class="rmain">
+        <div class="rtitle">${r.items.map(i=>i.type+" "+i.colorLabel+(i.qty>1?" ×"+i.qty:"")).join(" · ")}</div>
+        <div class="rrecip">${r.recipients.join("、")}</div>
+      </div>
+      <div class="rdate">${r.date}</div>
+      <span class="rarr" id="arr-${r.id}">▼</span>
+    </div>
+    <div class="rdet" id="det-${r.id}">
+      <div class="dlbl">商品</div>
+      ${r.items.map(item=>`<div class="ditem"><span class="cdot" style="background:${getHex(item)}"></span>${item.type} ${item.colorLabel}${item.qty>1?" ×"+item.qty:""}${item.code?` <span style="font-size:11px;color:#ccc">#${item.code}</span>`:""}</div>`).join("")}
+      <div class="dlbl">渡し先</div><div class="dval">${r.recipients.join("、")}</div>
+      ${r.notes?`<div class="dlbl">メモ</div><div class="dval">${r.notes}</div>`:""}
+      <div class="dlbl">登録日時</div><div class="dval" style="font-size:11px;color:#ccc">${new Date(r.savedAt).toLocaleString("ja-JP")}</div>
+      <button class="bdel" onclick="delRec('${r.id}')">削除</button>
+    </div>
+  </div>`).join("")}`;
+}
+function fHist(q){hfilter=q;renderHist();}
+function togRec(id){
+  const el=document.getElementById("det-"+id);const ar=document.getElementById("arr-"+id);
+  el.classList.toggle("open");ar.textContent=el.classList.contains("open")?"▲":"▼";
+}
+function delRec(id){
+  if(!confirm("削除しますか？"))return;
+  records=records.filter(r=>r.id!==id);
+  localStorage.setItem("maee-records",JSON.stringify(records));
+  updHistTab();renderHist();
+}
+
+function renderProds(){
+  document.getElementById("pcnt").textContent="登録済み "+PRODUCTS.length+"件";
+  const grouped={};
+  PRODUCTS.forEach(p=>{if(!grouped[p.type])grouped[p.type]=[];grouped[p.type].push(p);});
+  let h="";
+  Object.entries(grouped).forEach(([type,items])=>{
+    h+=`<div style="padding:10px 16px;font-size:11px;color:#999;background:#f7f4ef;border-bottom:1px solid #e8e4dc;letter-spacing:1px">${type}</div>`;
+    items.forEach(p=>{
+      h+=`<div class="ritem"><span class="cdot" style="background:${p.hex}"></span><span style="flex:1;font-size:13px">${p.colorLabel}</span><span style="font-size:11px;color:#ccc">${p.code?"#"+p.code:""}</span></div>`;
+    });
+  });
+  document.getElementById("plist-all").innerHTML=h;
+}
+
+function showErr(v,msg){
+  const el=document.getElementById(v+"-err");el.textContent="エラー: "+msg;el.style.display="block";
+}
+</script>
+</body>
+</html>
+<script>
+// デモデータを注入
+const demoRecords = [
+  {
+    id:"demo1",type:"one",
+    date:"2026-05-20",notes:"",
+    items:[{code:"1067",type:"グリッターリブ",color:"GD",colorLabel:"ゴールド",qty:1}],
+    recipients:["田中 花子"],
+    savedAt:"2026-05-20T10:30:00.000Z"
+  },
+  {
+    id:"demo2",type:"group",
+    date:"2026-05-21",notes:"定期検診後",
+    items:[
+      {code:"1046",type:"シアー",color:"BG",colorLabel:"ベージュ",qty:1},
+      {code:"1050",type:"シアー",color:"BK",colorLabel:"ブラック",qty:1},
+      {code:"",type:"コットンリブ",color:"PK",colorLabel:"ピンク",qty:1},
+    ],
+    recipients:["佐藤 美咲","鈴木 由美","山田 恵"],
+    savedAt:"2026-05-21T14:15:00.000Z"
+  },
+  {
+    id:"demo3",type:"bulk",
+    date:"2026-05-22",notes:"サンプル一式",
+    items:[
+      {code:"1056",type:"コットンリブ",color:"PK",colorLabel:"ピンク",qty:2},
+      {code:"",type:"プレミアムウール",color:"OML",colorLabel:"オートミール",qty:1},
+      {code:"",type:"グリッターリブ",color:"SV",colorLabel:"シルバー",qty:1},
+    ],
+    recipients:["○○クリニック"],
+    savedAt:"2026-05-22T09:00:00.000Z"
+  },
+  {
+    id:"demo4",type:"one",
+    date:"2026-05-22",notes:"",
+    items:[{code:"",type:"コットンシアー",color:"PMK",colorLabel:"プリュムモカ",qty:1}],
+    recipients:["伊藤 さくら"],
+    savedAt:"2026-05-22T16:45:00.000Z"
+  },
+];
+// 既存データがなければデモデータを表示
+if(!localStorage.getItem("maee-records")){
+  records = demoRecords;
+}
+updHistTab();
+
+// ── CSVエクスポート ──────────────────────────────
+function exportCSV() {
+  if (!records.length) { alert("記録がありません"); return; }
+
+  // 全商品を列として使う（実際に使われた品番のみ）
+  const usedCodes = [];
+  records.forEach(r => {
+    r.items.forEach(item => {
+      const key = item.code ? item.code : (item.type + item.colorLabel);
+      if (!usedCodes.find(u => u.key === key)) {
+        usedCodes.push({ key, code: item.code, type: item.type, colorLabel: item.colorLabel });
+      }
+    });
+  });
+
+  // ヘッダー行
+  const header = ["日付", "パターン", "渡し先"].concat(
+    usedCodes.map(u => (u.code ? u.code + " " : "") + u.type + " " + u.colorLabel)
+  );
+
+  const rows = [header];
+
+  records.forEach(r => {
+    const tl = { one:"個別", group:"複数", bulk:"集団" };
+    const pattern = tl[r.type] || r.type;
+
+    if (r.type === "one" || r.type === "bulk") {
+      // 1行
+      const row = [r.date, pattern, r.recipients.join(" / ")];
+      usedCodes.forEach(u => {
+        const item = r.items.find(i => (i.code ? i.code === u.code : (i.type + i.colorLabel) === u.key));
+        row.push(item ? item.qty : "");
+      });
+      rows.push(row);
+    } else if (r.type === "group") {
+      // 複数行：1行目に商品、2行目以降は〃
+      r.recipients.forEach((recip, idx) => {
+        const row = [
+          idx === 0 ? r.date : "〃",
+          idx === 0 ? pattern : "〃",
+          recip
+        ];
+        usedCodes.forEach(u => {
+          if (idx === 0) {
+            const item = r.items.find(i => (i.code ? i.code === u.code : (i.type + i.colorLabel) === u.key));
+            row.push(item ? item.qty : "");
+          } else {
+            row.push(""); // 2行目以降は空欄
+          }
+        });
+        rows.push(row);
+      });
+    }
+
+    // 記録間の区切り空行
+    rows.push(new Array(header.length).fill(""));
+  });
+
+  // CSV生成（BOM付きUTF-8でExcelでも文字化けしない）
+  const bom = "﻿";
+  const csv = bom + rows.map(r => r.map(cell => {
+    const s = String(cell === null || cell === undefined ? "" : cell);
+    return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(",")).join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "MAEE_記録_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
