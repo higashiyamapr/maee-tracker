@@ -274,11 +274,12 @@ async function handleFiles(inp){
       all.push(...items);
     }catch(e){
       btn.textContent="📷 写真を選ぶ（複数可）";btn.disabled=false;inp.value="";
+      alert('エラー: '+e.message);
       showErr("scan",e.message);return;
     }
   }
   btn.textContent="📷 写真を選ぶ（複数可）";btn.disabled=false;inp.value="";
-  if(!all.length){showErr("scan","商品を認識できませんでした。ラベルがはっきり写った写真を使ってください。");return;}
+  if(!all.length){alert('認識結果0件');showErr("scan","商品を認識できませんでした。ラベルがはっきり写った写真を使ってください。");return;}
   const counted=[];
   all.forEach(r=>{
     const ex=counted.find(x=>x.code===r.code&&x.colorLabel===r.colorLabel);
