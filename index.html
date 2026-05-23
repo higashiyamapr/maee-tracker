@@ -295,16 +295,35 @@ function resize(file){
     const reader=new FileReader();
     reader.onerror=()=>rej(new Error("ファイル読み込み失敗"));
     reader.onload=e=>{
+      const dataUrl=e.target.result;
+      const b64=dataUrl.split(",")[1];
+      // Try to resize, fall back to original if it fails
       const img=new Image();
-      img.onerror=()=>res(e.target.result.split(",")[1]);
+      img.onerror=()=>res(b64); // fallback: use original
       img.onload=()=>{
-        const MAX=1200;let w=img.width,h=img.height;
-        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-        const c=document.createElement("canvas");c.width=w;c.height=h;
-        c.getContext("2d").drawImage(img,0,0,w,h);
-        res(c.toDataURL("image/jpeg",0.82).split(",")[1]);
+        try{
+          const MAX=1024;let w=img.width,h=img.height;
+          if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+          const c=document.createElement("canvas");c.width=w;c.height=h;
+          c.getContext("2d").drawImage(img,0,0,w,h);
+          res(c.toDataURL("image/jpeg",0.7).split(",")[1]);
+        }catch(err){res(b64);}
       };
-      img.src=e.target.result;
+      // Use blob URL instead of data URL to avoid HEIC issues
+      const blob=new Blob([Uint8Array.from(atob(b64),c=>c.charCodeAt(0))],{type:file.type||"image/jpeg"});
+      const url=URL.createObjectURL(blob);
+      img.onload=()=>{
+        URL.revokeObjectURL(url);
+        try{
+          const MAX=1024;let w=img.width,h=img.height;
+          if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+          const c=document.createElement("canvas");c.width=w;c.height=h;
+          c.getContext("2d").drawImage(img,0,0,w,h);
+          res(c.toDataURL("image/jpeg",0.7).split(",")[1]);
+        }catch(err){res(b64);}
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);res(b64);};
+      img.src=url;
     };
     reader.readAsDataURL(file);
   });
