@@ -259,6 +259,7 @@ function trigFile(){document.getElementById("finput").click();}
 
 async function handleFiles(inp){
   const files=Array.from(inp.files||[]);
+  alert('ファイル選択: ' + files.length + '枚');
   if(!files.length)return;
   const key=document.getElementById("key-input").value.trim()||apiKey;
   if(!key){showErr("scan","Gemini APIキーを入力・保存してください");return;}
