@@ -213,7 +213,7 @@ let apiKey=localStorage.getItem("maee-gemini-key")||"", pcount=1, hfilter="";
 window.onload=()=>{
   if(apiKey){document.getElementById("key-input").value=apiKey;updKey();}
   document.getElementById("dateinput").value=new Date().toISOString().slice(0,10);
-  renderProds();updHistTab();
+  renderProducts();updHistTab();
 };
 
 function updKey(){
@@ -336,6 +336,20 @@ async function gemini(b64,key){
   throw new Error("解析失敗: "+text.slice(0,100));
 }
 
+
+function renderProducts(){
+  document.getElementById("pcnt").textContent="登録済み "+PRODUCTS.length+"件";
+  const grouped={};
+  PRODUCTS.forEach(p=>{if(!grouped[p.type])grouped[p.type]=[];grouped[p.type].push(p);});
+  let h="";
+  Object.entries(grouped).forEach(([type,items])=>{
+    h+=`<div style="padding:10px 16px;font-size:11px;color:#999;background:#f7f4ef;border-bottom:1px solid #e8e4dc;letter-spacing:1px">${type}</div>`;
+    items.forEach(p=>{
+      h+=`<div class="ritem"><span class="cdot" style="background:${p.hex}"></span><span style="flex:1;font-size:13px">${p.colorLabel}</span><span style="font-size:11px;color:#ccc">${p.code?"#"+p.code:""}</span></div>`;
+    });
+  });
+  document.getElementById("plist-all").innerHTML=h;
+}
 
 </script>
 </body>
