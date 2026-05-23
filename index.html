@@ -97,9 +97,9 @@ textarea{resize:vertical}
   <!-- MODE -->
   <div id="v-mode">
     <p style="font-size:14px;color:#666;line-height:1.9;margin-bottom:20px">どのパターンで渡しましたか？</p>
-    <div class="mcard" onclick="selMode('one')"><span class="micon">🎁</span><div><div class="mtitle">個別</div><div class="msub">1人に渡す</div></div><span class="marr">›</span></div>
-    <div class="mcard" onclick="selMode('group')"><span class="micon">🔀</span><div><div class="mtitle">複数</div><div class="msub">複数人に渡す（誰に何かは不明）</div></div><span class="marr">›</span></div>
-    <div class="mcard" onclick="selMode('bulk')"><span class="micon">📦</span><div><div class="mtitle">集団</div><div class="msub">編集部・施設などまとめて渡す</div></div><span class="marr">›</span></div>
+    <div class="mcard" data-mode="one" onclick="selMode(this.dataset.mode)"><span class="micon">🎁</span><div><div class="mtitle">個別</div><div class="msub">1人に渡す</div></div><span class="marr">›</span></div>
+    <div class="mcard" data-mode="group" onclick="selMode(this.dataset.mode)"><span class="micon">🔀</span><div><div class="mtitle">複数</div><div class="msub">複数人に渡す（誰に何かは不明）</div></div><span class="marr">›</span></div>
+    <div class="mcard" data-mode="bulk" onclick="selMode(this.dataset.mode)"><span class="micon">📦</span><div><div class="mtitle">集団</div><div class="msub">編集部・施設などまとめて渡す</div></div><span class="marr">›</span></div>
   </div>
   <!-- SCAN -->
   <div id="v-scan" style="display:none">
