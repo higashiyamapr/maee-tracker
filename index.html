@@ -106,9 +106,9 @@ textarea{resize:vertical}
     <button class="btng backbtn" onclick="sv('mode')">← 戻る</button>
     <div class="modetitle" id="scan-title"></div>
     <div class="kbox">
-      <div class="klbl">GEMINI API KEY</div>
+      <div class="klbl">OPENAI API KEY</div>
       <div class="krow">
-        <input type="password" id="key-input" placeholder="AIza..." oninput="updKey()">
+        <input type="password" id="key-input" placeholder="sk-..." oninput="updKey()">
         <button class="ksave" onclick="saveKey()">保存</button>
       </div>
       <div class="kst" id="kst"></div>
@@ -220,7 +220,7 @@ function updKey(){
   const v=document.getElementById("key-input").value.trim();
   const el=document.getElementById("kst");
   if(v){el.className="kst ok";el.textContent="✅ キー入力済み";}
-  else{el.className="kst warn";el.textContent="⚠ aistudio.google.com で無料取得できます";}
+  else{el.className="kst warn";el.textContent="⚠ platform.openai.com でキーを確認";}
 }
 function saveKey(){
   const v=document.getElementById("key-input").value.trim();
@@ -311,266 +311,26 @@ function resize(file){
 async function gemini(b64,key){
   const list=PRODUCTS.map(p=>"品番"+(p.code||"不明")+": "+p.type+" "+p.colorLabel+(p.code?"":"（品番なし）")).join("\n");
   const prompt="MAEÉコンプレッションソックスのパッケージ画像です。ラベルの品番・商品名・色を読み取り、下記リストと照合してください。\n\n商品リスト:\n"+list+"\n\n必ずJSON配列のみを返してください。説明文不要。\n[{\"code\":\"品番(不明なら空)\",\"type\":\"種類\",\"color\":\"カラーコード\",\"colorLabel\":\"色名\",\"qty\":個数}]\n同じ商品が複数写っていれば qty を増やす。認識できなければ [] のみ。";
-  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+key,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:b64}},{text:prompt}]}]})
+  const r=await fetch("https://api.openai.com/v1/chat/completions",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+    body:JSON.stringify({
+      model:"gpt-4o-mini",
+      max_tokens:1000,
+      messages:[{role:"user",content:[
+        {type:"image_url",image_url:{url:"data:image/jpeg;base64,"+b64}},
+        {type:"text",text:prompt}
+      ]}]
+    })
   });
   const raw=await r.text();
-  if(!r.ok)throw new Error("API "+r.status+": "+raw.slice(0,100));
+  if(!r.ok)throw new Error("API "+r.status+": "+raw.slice(0,150));
   const data=JSON.parse(raw);
   if(data.error)throw new Error(data.error.message||"APIエラー");
-  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||"";
+  const text=data?.choices?.[0]?.message?.content?.trim()||"";
   const pats=[/```json\s*([\s\S]*?)```/,/```\s*([\s\S]*?)```/,/(\[[\s\S]*\])/];
   for(const p of pats){const m=text.match(p);if(m){try{const v=JSON.parse(m[1]||m[0]);if(Array.isArray(v))return v;}catch(e){}}}
   try{const v=JSON.parse(text);if(Array.isArray(v))return v;}catch(e){}
   throw new Error("解析失敗: "+text.slice(0,100));
 }
 
-function getHex(item){
-  const p=PRODUCTS.find(x=>(x.code&&x.code===item.code)||(x.type===item.type&&x.colorLabel===item.colorLabel));
-  return p?p.hex:"#888888";
-}
-
-function renderConf(){
-  document.getElementById("rlist").innerHTML=scanned.map(item=>`
-    <div class="ritem">
-      <span class="cdot" style="background:${getHex(item)}"></span>
-      <div style="flex:1"><span class="iname">${item.type} ${item.colorLabel}</span> ${item.code?`<span class="isub">#${item.code}</span>`:""}
-      </div>${item.qty>1?`<span class="iqty">×${item.qty}</span>`:""}
-    </div>`).join("");
-  document.getElementById("r-one").style.display=curMode==="one"?"block":"none";
-  document.getElementById("r-group").style.display=curMode==="group"?"block":"none";
-  document.getElementById("r-bulk").style.display=curMode==="bulk"?"block":"none";
-  document.getElementById("rlbl").textContent=curMode==="bulk"?"🏢 渡し先（集団名）":"👤 お名前";
-  if(curMode==="group")renderPpl();
-}
-function renderPpl(){
-  let h="";
-  for(let i=0;i<pcount;i++){
-    const v=document.getElementById("p-"+i)?.value||"";
-    h+=`<div class="prow"><input type="text" id="p-${i}" placeholder="名前 ${i+1}" value="${v}">`;
-    if(pcount>1)h+=`<button class="premv" onclick="rmP(${i})">×</button>`;
-    h+=`</div>`;
-  }
-  document.getElementById("plist").innerHTML=h;
-}
-function addP(){pcount++;renderPpl();}
-function rmP(i){
-  const vs=[];for(let j=0;j<pcount;j++)vs.push(document.getElementById("p-"+j)?.value||"");
-  vs.splice(i,1);pcount--;renderPpl();
-  vs.forEach((v,j)=>{const el=document.getElementById("p-"+j);if(el)el.value=v;});
-}
-
-function saveRec(){
-  document.getElementById("conf-err").style.display="none";
-  let recips=[];
-  if(curMode==="one"){
-    const n=document.getElementById("name-one").value.trim();
-    if(!n){showErr("conf","お名前を入力してください");return;}
-    recips=[n];
-  }else if(curMode==="group"){
-    for(let i=0;i<pcount;i++){const v=document.getElementById("p-"+i)?.value.trim();if(v)recips.push(v);}
-    if(!recips.length){showErr("conf","お名前を入力してください");return;}
-  }else{
-    const n=document.getElementById("name-bulk").value.trim();
-    if(!n){showErr("conf","集団名を入力してください");return;}
-    recips=[n];
-  }
-  const rec={
-    id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
-    type:curMode,
-    date:document.getElementById("dateinput").value,
-    notes:document.getElementById("notesinput").value,
-    items:scanned,recipients:recips,
-    savedAt:new Date().toISOString()
-  };
-  records.unshift(rec);
-  localStorage.setItem("maee-records",JSON.stringify(records));
-  document.getElementById("done-items").textContent=scanned.map(i=>i.type+" "+i.colorLabel+(i.qty>1?" ×"+i.qty:"")).join("、");
-  updHistTab();sv("done");
-}
-
-function updHistTab(){
-  document.getElementById("tab-history").textContent="履歴"+(records.length?" ("+records.length+")":"");
-}
-function renderHist(){
-  const el=document.getElementById("page-history");
-  const fl=hfilter?records.filter(r=>r.recipients.some(n=>n.includes(hfilter))||r.items.some(i=>(i.type+i.colorLabel).includes(hfilter))||r.date.includes(hfilter)):records;
-  if(!records.length){el.innerHTML=`<div class="empty"><div class="eico">📋</div><div>まだ記録がありません</div></div>`;return;}
-  const tl={one:"個別",group:"複数",bulk:"集団"};
-  const tc={one:"#1a2a4a",group:"#7c3aed",bulk:"#c9a84c"};
-  el.innerHTML=`<button onclick="exportCSV()" style="width:100%;padding:12px;border-radius:10px;border:1px solid #1a1a1a;background:#fff;font-size:14px;cursor:pointer;color:#1a1a1a;font-family:inherit;margin-bottom:12px;">📥 CSVエクスポート（Google Drive用）</button><input class="sbox" placeholder="🔍 名前・商品・日付で検索..." oninput="fHist(this.value)" value="${hfilter}">
-  <div class="clbl">${fl.length}件</div>
-  ${fl.map(r=>`
-  <div class="rcrd">
-    <div class="rhdr" onclick="togRec('${r.id}')">
-      <span class="rtype" style="background:${tc[r.type]}22;color:${tc[r.type]}">${tl[r.type]}</span>
-      <div class="rmain">
-        <div class="rtitle">${r.items.map(i=>i.type+" "+i.colorLabel+(i.qty>1?" ×"+i.qty:"")).join(" · ")}</div>
-        <div class="rrecip">${r.recipients.join("、")}</div>
-      </div>
-      <div class="rdate">${r.date}</div>
-      <span class="rarr" id="arr-${r.id}">▼</span>
-    </div>
-    <div class="rdet" id="det-${r.id}">
-      <div class="dlbl">商品</div>
-      ${r.items.map(item=>`<div class="ditem"><span class="cdot" style="background:${getHex(item)}"></span>${item.type} ${item.colorLabel}${item.qty>1?" ×"+item.qty:""}${item.code?` <span style="font-size:11px;color:#ccc">#${item.code}</span>`:""}</div>`).join("")}
-      <div class="dlbl">渡し先</div><div class="dval">${r.recipients.join("、")}</div>
-      ${r.notes?`<div class="dlbl">メモ</div><div class="dval">${r.notes}</div>`:""}
-      <div class="dlbl">登録日時</div><div class="dval" style="font-size:11px;color:#ccc">${new Date(r.savedAt).toLocaleString("ja-JP")}</div>
-      <button class="bdel" onclick="delRec('${r.id}')">削除</button>
-    </div>
-  </div>`).join("")}`;
-}
-function fHist(q){hfilter=q;renderHist();}
-function togRec(id){
-  const el=document.getElementById("det-"+id);const ar=document.getElementById("arr-"+id);
-  el.classList.toggle("open");ar.textContent=el.classList.contains("open")?"▲":"▼";
-}
-function delRec(id){
-  if(!confirm("削除しますか？"))return;
-  records=records.filter(r=>r.id!==id);
-  localStorage.setItem("maee-records",JSON.stringify(records));
-  updHistTab();renderHist();
-}
-
-function renderProds(){
-  document.getElementById("pcnt").textContent="登録済み "+PRODUCTS.length+"件";
-  const grouped={};
-  PRODUCTS.forEach(p=>{if(!grouped[p.type])grouped[p.type]=[];grouped[p.type].push(p);});
-  let h="";
-  Object.entries(grouped).forEach(([type,items])=>{
-    h+=`<div style="padding:10px 16px;font-size:11px;color:#999;background:#f7f4ef;border-bottom:1px solid #e8e4dc;letter-spacing:1px">${type}</div>`;
-    items.forEach(p=>{
-      h+=`<div class="ritem"><span class="cdot" style="background:${p.hex}"></span><span style="flex:1;font-size:13px">${p.colorLabel}</span><span style="font-size:11px;color:#ccc">${p.code?"#"+p.code:""}</span></div>`;
-    });
-  });
-  document.getElementById("plist-all").innerHTML=h;
-}
-
-function showErr(v,msg){
-  const el=document.getElementById(v+"-err");el.textContent="エラー: "+msg;el.style.display="block";
-}
-</script>
-</body>
-</html>
-<script>
-// デモデータを注入
-const demoRecords = [
-  {
-    id:"demo1",type:"one",
-    date:"2026-05-20",notes:"",
-    items:[{code:"1067",type:"グリッターリブ",color:"GD",colorLabel:"ゴールド",qty:1}],
-    recipients:["田中 花子"],
-    savedAt:"2026-05-20T10:30:00.000Z"
-  },
-  {
-    id:"demo2",type:"group",
-    date:"2026-05-21",notes:"定期検診後",
-    items:[
-      {code:"1046",type:"シアー",color:"BG",colorLabel:"ベージュ",qty:1},
-      {code:"1050",type:"シアー",color:"BK",colorLabel:"ブラック",qty:1},
-      {code:"",type:"コットンリブ",color:"PK",colorLabel:"ピンク",qty:1},
-    ],
-    recipients:["佐藤 美咲","鈴木 由美","山田 恵"],
-    savedAt:"2026-05-21T14:15:00.000Z"
-  },
-  {
-    id:"demo3",type:"bulk",
-    date:"2026-05-22",notes:"サンプル一式",
-    items:[
-      {code:"1056",type:"コットンリブ",color:"PK",colorLabel:"ピンク",qty:2},
-      {code:"",type:"プレミアムウール",color:"OML",colorLabel:"オートミール",qty:1},
-      {code:"",type:"グリッターリブ",color:"SV",colorLabel:"シルバー",qty:1},
-    ],
-    recipients:["○○クリニック"],
-    savedAt:"2026-05-22T09:00:00.000Z"
-  },
-  {
-    id:"demo4",type:"one",
-    date:"2026-05-22",notes:"",
-    items:[{code:"",type:"コットンシアー",color:"PMK",colorLabel:"プリュムモカ",qty:1}],
-    recipients:["伊藤 さくら"],
-    savedAt:"2026-05-22T16:45:00.000Z"
-  },
-];
-// 既存データがなければデモデータを表示
-if(!localStorage.getItem("maee-records")){
-  records = demoRecords;
-}
-updHistTab();
-
-// ── CSVエクスポート ──────────────────────────────
-function exportCSV() {
-  if (!records.length) { alert("記録がありません"); return; }
-
-  // 全商品を列として使う（実際に使われた品番のみ）
-  const usedCodes = [];
-  records.forEach(r => {
-    r.items.forEach(item => {
-      const key = item.code ? item.code : (item.type + item.colorLabel);
-      if (!usedCodes.find(u => u.key === key)) {
-        usedCodes.push({ key, code: item.code, type: item.type, colorLabel: item.colorLabel });
-      }
-    });
-  });
-
-  // ヘッダー行
-  const header = ["日付", "パターン", "渡し先"].concat(
-    usedCodes.map(u => (u.code ? u.code + " " : "") + u.type + " " + u.colorLabel)
-  );
-
-  const rows = [header];
-
-  records.forEach(r => {
-    const tl = { one:"個別", group:"複数", bulk:"集団" };
-    const pattern = tl[r.type] || r.type;
-
-    if (r.type === "one" || r.type === "bulk") {
-      // 1行
-      const row = [r.date, pattern, r.recipients.join(" / ")];
-      usedCodes.forEach(u => {
-        const item = r.items.find(i => (i.code ? i.code === u.code : (i.type + i.colorLabel) === u.key));
-        row.push(item ? item.qty : "");
-      });
-      rows.push(row);
-    } else if (r.type === "group") {
-      // 複数行：1行目に商品、2行目以降は〃
-      r.recipients.forEach((recip, idx) => {
-        const row = [
-          idx === 0 ? r.date : "〃",
-          idx === 0 ? pattern : "〃",
-          recip
-        ];
-        usedCodes.forEach(u => {
-          if (idx === 0) {
-            const item = r.items.find(i => (i.code ? i.code === u.code : (i.type + i.colorLabel) === u.key));
-            row.push(item ? item.qty : "");
-          } else {
-            row.push(""); // 2行目以降は空欄
-          }
-        });
-        rows.push(row);
-      });
-    }
-
-    // 記録間の区切り空行
-    rows.push(new Array(header.length).fill(""));
-  });
-
-  // CSV生成（BOM付きUTF-8でExcelでも文字化けしない）
-  const bom = "﻿";
-  const csv = bom + rows.map(r => r.map(cell => {
-    const s = String(cell === null || cell === undefined ? "" : cell);
-    return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s;
-  }).join(",")).join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "MAEE_記録_" + new Date().toISOString().slice(0,10) + ".csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-</script>
